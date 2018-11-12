@@ -147,10 +147,6 @@ public class Simulation {
         return ChronoUnit.MINUTES.between(clock, last40MinuteStop) >= 40;
     }
 
-    private boolean stopIsNeededForCleaning() {
-        return ChronoUnit.HOURS.between(clock, lastCleaning) >= 4;
-    }
-
     public int getDay() {
         return day;
     }

@@ -7,19 +7,20 @@ import utn.frc.sim.model.Event;
 import utn.frc.sim.model.TimeEvent;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class ServerWithInterruptions extends Server {
 
     private static final Logger logger = LogManager.getLogger(ServerWithInterruptions.class);
-    private DistributionRandomGenerator generator;
     private final int interruptPeriod;
-    private int clientsWithoutInterruptions;
     private LocalDateTime lastCleaning;
+    private TimeEvent interruptEvent;
 
-    public ServerWithInterruptions(String serverName, TimeEvent timeEvent, int , LocalDateTime init) {
+    public ServerWithInterruptions(String serverName, TimeEvent timeEvent, int hours, LocalDateTime init, TimeEvent interruptEvent) {
         super(serverName, timeEvent);
-        this.interruptPeriod = ;
-        this.
+        this.interruptPeriod = hours;
+        this.lastCleaning = init;
+        this.interruptEvent = interruptEvent;
     }
 
     @Override
@@ -27,21 +28,18 @@ public class ServerWithInterruptions extends Server {
         Event event;
         if (state == ServerState.OCP) {
             event = new Event(servingClient);
-            clientsWithoutInterruptions++;
-            if (clientsWithoutInterruptions == interruptPeriod) {
-                logger.info("{}: {} clients without interruptions. Next event is calibration.",
+            if (stopIsNeededForCleaning(nextEnd)) {
+                logger.info("{}: {} hours without interruptions. Next event is cleaning.",
                         getServerName(),
-                        clientsWithoutInterruptions);
+                        interruptPeriod);
                 nextEnd = timeEvent.calculateNextEventFromRandom(nextEnd);
                 state = ServerState.OUT;
             } else {
-                logger.info("{}: {} clients without interruptions.", getServerName(), clientsWithoutInterruptions);
                 nextEnd = null;
                 state = ServerState.LBR;
             }
 
         } else {
-            clientsWithoutInterruptions = 0;
             nextEnd = null;
             servingClient = null;
             state = ServerState.LBR;
@@ -49,5 +47,9 @@ public class ServerWithInterruptions extends Server {
         }
         servingClient = null;
         return event;
+    }
+
+    private boolean stopIsNeededForCleaning(LocalDateTime clock) {
+        return ChronoUnit.HOURS.between(clock, lastCleaning) >= interruptPeriod;
     }
 }

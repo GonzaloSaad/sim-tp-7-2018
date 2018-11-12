@@ -32,7 +32,6 @@ public class Simulation {
     private Events lastEventDescription;
     private Client clientOfEvent;
     private List<EventGenerator> eventGenerators;
-    private int day;
     private int limitOfSimulations;
 
 
@@ -59,7 +58,11 @@ public class Simulation {
     private void initMagicCarpet() {
         DistributionRandomGenerator generator = ConstantDistributionGenerator.createOf(1.2);
         TimeEvent timeEvent = TimeEvent.create(generator, ChronoUnit.SECONDS, ChronoUnit.MILLIS);
-        magicCarpet = new Server("Magic Carpet", timeEvent);
+
+        DistributionRandomGenerator generatorOfInterruption = ConstantDistributionGenerator.createOf(20);
+        TimeEvent timeEventOfInterruptions = TimeEvent.create(generatorOfInterruption, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
+
+        magicCarpet = new ServerWithInterruptions("Magic Carpet", timeEvent,4, dayFirstEvent, timeEventOfInterruptions);
         eventGenerators.add(magicCarpet);
     }
 
@@ -68,15 +71,13 @@ public class Simulation {
     }
 
     private void initFirstEventOfDay() {
-        day = 0;
         dayFirstEvent = LocalDateTime.of(2018, 1, 1, 9, 0);
     }
 
     private void initClientGenerator() {
         DistributionRandomGenerator generator = UniformDistributionGenerator.createOf(135, 225);
         TimeEvent timeEvent = TimeEvent.create(generator, ChronoUnit.SECONDS, ChronoUnit.MILLIS);
-        LocalDateTime clientsInitial = LocalDateTime.of(2018, 1, 1, 9, 0);
-        clientGenerator = new ClientGenerator(clientsInitial, timeEvent);
+        clientGenerator = new ClientGenerator(dayFirstEvent, timeEvent);
         eventGenerators.add(clientGenerator);
     }
 
@@ -103,12 +104,10 @@ public class Simulation {
     private void handleEventFromClientGenerator(LocalDateTime clock) {
 
         if (clientGenerator.isEventFrom(clock)) {
-            if(stopIsNeededFor40MinutesBreak()){
-                Client newClient = clientGenerator.getNextClient();
+            Client newClient = clientGenerator.getNextClient(Boolean.TRUE);
 
-            }
             newClient.setInTime(clock);
-            if(magicCarpet.isFree()){
+            if (magicCarpet.isFree()) {
                 newClient.setServeTime(clock);
             } else {
                 magicCarpetQueue.add(newClient);
@@ -124,7 +123,7 @@ public class Simulation {
             if (event.hasClient()) {
                 Client finishedClient = event.getClient();
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
-                clientOfEvent = finishedClient
+                clientOfEvent = finishedClient;
             }
         }
     }
@@ -145,10 +144,6 @@ public class Simulation {
 
     private boolean stopIsNeededFor40MinutesBreak() {
         return ChronoUnit.MINUTES.between(clock, last40MinuteStop) >= 40;
-    }
-
-    public int getDay() {
-        return day;
     }
 
     public LocalDateTime getClock() {

@@ -32,7 +32,7 @@ public class ServerWithInterruptions extends Server {
                 logger.info("{}: {} hours without interruptions. Next event is cleaning.",
                         getServerName(),
                         interruptPeriod);
-                nextEnd = timeEvent.calculateNextEventFromRandom(nextEnd);
+                nextEnd = interruptEvent.calculateNextEventFromRandom(nextEnd);
                 state = ServerState.OUT;
             } else {
                 nextEnd = null;

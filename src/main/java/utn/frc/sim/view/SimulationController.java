@@ -19,7 +19,7 @@ import utn.frc.sim.util.Fila;
 
 public class SimulationController {
 
-    /*private static final Logger logger = LogManager.getLogger(SimulationController.class);
+    private static final Logger logger = LogManager.getLogger(SimulationController.class);
     private static final int MAX_SIMULATION = 30;
     private SimulationWrapper simulation;
     private ObservableList<Fila> data;
@@ -155,7 +155,7 @@ public class SimulationController {
 
     private void initializeNewSimulation() {
         logger.debug("Initializing simulation of {} days.", MAX_SIMULATION);
-        simulation = SimulationWrapper.ofType(MainMenuController.getType(), MAX_SIMULATION);
+        simulation = SimulationWrapper.ofType();
         data = FXCollections.observableArrayList();
     }
 
@@ -244,6 +244,6 @@ public class SimulationController {
         day.setCellValueFactory(new PropertyValueFactory<>("day"));
 
         tvSim.setItems(data);
-    }*/
+    }
 
 }

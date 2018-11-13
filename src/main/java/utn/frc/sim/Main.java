@@ -29,15 +29,7 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        //launch(args);
-        SimulationWrapper simulationWrapper = SimulationWrapper.ofType();
+        launch(args);
 
-        try{
-            while(true){
-                simulationWrapper.step();
-            }
-        } catch (SimulationFinishedException e) {
-            System.out.println(simulationWrapper.getLastEvent());
-        }
     }
 }

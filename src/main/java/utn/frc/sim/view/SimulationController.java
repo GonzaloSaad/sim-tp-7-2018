@@ -19,7 +19,7 @@ import utn.frc.sim.util.Fila;
 
 public class SimulationController {
 
-    private static final Logger logger = LogManager.getLogger(SimulationController.class);
+    /*private static final Logger logger = LogManager.getLogger(SimulationController.class);
     private static final int MAX_SIMULATION = 30;
     private SimulationWrapper simulation;
     private ObservableList<Fila> data;
@@ -244,6 +244,6 @@ public class SimulationController {
         day.setCellValueFactory(new PropertyValueFactory<>("day"));
 
         tvSim.setItems(data);
-    }
+    }*/
 
 }

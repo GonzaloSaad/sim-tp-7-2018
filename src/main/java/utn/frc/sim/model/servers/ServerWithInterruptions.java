@@ -26,30 +26,32 @@ public class ServerWithInterruptions extends Server {
     @Override
     public Event getEvent() {
         Event event;
-        if (state == ServerState.OCP) {
-            event = new Event(servingClient);
-            if (stopIsNeededForCleaning(nextEnd)) {
+        if (getState() == ServerState.OCP) {
+            event = new Event(getServingClient().orElse(null));
+            if (stopIsNeededForCleaning()) {
                 logger.info("{}: {} hours without interruptions. Next event is cleaning.",
                         getServerName(),
                         interruptPeriod);
-                nextEnd = interruptEvent.calculateNextEventFromRandom(nextEnd);
-                state = ServerState.OUT;
+                lastCleaning = getNextEnd();
+                setNextEnd(interruptEvent.calculateNextEventFromRandom(lastCleaning));
+                setState(ServerState.OUT);
+
             } else {
-                nextEnd = null;
-                state = ServerState.LBR;
+                setNextEnd(null);
+                setState(ServerState.LBR);
             }
 
         } else {
-            nextEnd = null;
-            servingClient = null;
-            state = ServerState.LBR;
+            setNextEnd(null);
+            setServingClient(null);
+            setState(ServerState.LBR);
             event = new Event();
         }
-        servingClient = null;
+        setServingClient(null);
         return event;
     }
 
-    private boolean stopIsNeededForCleaning(LocalDateTime clock) {
-        return ChronoUnit.HOURS.between(clock, lastCleaning) >= interruptPeriod;
+    private boolean stopIsNeededForCleaning() {
+        return ChronoUnit.HOURS.between(lastCleaning, getNextEnd()) >= interruptPeriod;
     }
 }

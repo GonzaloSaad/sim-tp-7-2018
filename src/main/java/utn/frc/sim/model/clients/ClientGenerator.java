@@ -22,6 +22,8 @@ public class ClientGenerator implements EventGenerator {
     public Client getNextClient(Boolean calculateNextEvent) {
         if(calculateNextEvent){
             calculateNextEvent();
+        } else {
+            nextClientEvent = null;
         }
         lastClient++;
         return new Client(lastClient);
@@ -46,6 +48,6 @@ public class ClientGenerator implements EventGenerator {
 
     @Override
     public boolean isEventFrom(LocalDateTime clock) {
-        return nextClientEvent.equals(clock);
+        return nextClientEvent != null && nextClientEvent.equals(clock);
     }
 }

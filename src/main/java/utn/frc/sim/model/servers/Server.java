@@ -11,10 +11,10 @@ import java.util.Optional;
 public class Server implements EventGenerator {
 
     private final String serverName;
-    protected LocalDateTime nextEnd;
-    protected Client servingClient;
-    protected TimeEvent timeEvent;
-    protected ServerState state;
+    private LocalDateTime nextEnd;
+    private Client servingClient;
+    private TimeEvent timeEvent;
+    private ServerState state;
 
     public Server(String serverName, TimeEvent timeEvent) {
         this.serverName = serverName;
@@ -42,12 +42,36 @@ public class Server implements EventGenerator {
         return Optional.ofNullable(servingClient);
     }
 
+    public String getServerName() {
+        return serverName;
+    }
+
+    public LocalDateTime getNextEnd() {
+        return nextEnd;
+    }
+
+    public void setNextEnd(LocalDateTime nextEnd) {
+        this.nextEnd = nextEnd;
+    }
+
+    public void setServingClient(Client servingClient) {
+        this.servingClient = servingClient;
+    }
+
+    public TimeEvent getTimeEvent() {
+        return timeEvent;
+    }
+
+    public void setTimeEvent(TimeEvent timeEvent) {
+        this.timeEvent = timeEvent;
+    }
+
     public ServerState getState() {
         return state;
     }
 
-    public String getServerName() {
-        return serverName;
+    public void setState(ServerState state) {
+        this.state = state;
     }
 
     public boolean isFree() {

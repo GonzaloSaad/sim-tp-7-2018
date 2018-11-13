@@ -1,11 +1,14 @@
 package utn.frc.sim;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import utn.frc.sim.simulation.SimulationFinishedException;
+import utn.frc.sim.simulation.SimulationWrapper;
 
 
 public class Main extends Application {
@@ -26,6 +29,15 @@ public class Main extends Application {
     }
 
     public static void main(String[] args) {
-        launch(args);
+        //launch(args);
+        SimulationWrapper simulationWrapper = SimulationWrapper.ofType();
+
+        try{
+            while(true){
+                simulationWrapper.step();
+            }
+        } catch (SimulationFinishedException e) {
+            System.out.println(simulationWrapper.getLastEvent());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package utn.frc.sim.simulation;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utn.frc.sim.generators.distributions.*;
@@ -49,6 +50,19 @@ public class Simulation {
         initClientGenerator();
         initEvent();
         initMagicCarpet();
+        initMagicCarpetQueue();
+        initGlobalParameters();
+
+    }
+
+    private void initMagicCarpetQueue() {
+        magicCarpetQueue = new LinkedList<>();
+    }
+
+    private void initGlobalParameters() {
+        is4HourBreak = false;
+        is40MinutesBreak = false;
+
     }
 
     private void initListOfEventGenerators() {
@@ -62,7 +76,7 @@ public class Simulation {
         DistributionRandomGenerator generatorOfInterruption = ConstantDistributionGenerator.createOf(20);
         TimeEvent timeEventOfInterruptions = TimeEvent.create(generatorOfInterruption, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
 
-        magicCarpet = new ServerWithInterruptions("Magic Carpet", timeEvent,4, dayFirstEvent, timeEventOfInterruptions);
+        magicCarpet = new ServerWithInterruptions("Magic Carpet", timeEvent, 4, dayFirstEvent, timeEventOfInterruptions);
         eventGenerators.add(magicCarpet);
     }
 
@@ -72,6 +86,7 @@ public class Simulation {
 
     private void initFirstEventOfDay() {
         dayFirstEvent = LocalDateTime.of(2018, 1, 1, 9, 0);
+        last40MinuteStop = dayFirstEvent;
     }
 
     private void initClientGenerator() {
@@ -87,12 +102,14 @@ public class Simulation {
     }
 
     private void handleEventFromFirstEvent(LocalDateTime clock) throws SimulationFinishedException {
-        if (dayFirstEvent.isEqual(clock)) {
 
-            if (clock.getHour() >= 19) {
-                throw new SimulationFinishedException();
-            }
-            logger.debug("{} - Day start.", clock);
+        if (clock.getHour() >= 19) {
+            throw new SimulationFinishedException();
+        }
+
+
+        if (dayFirstEvent.isEqual(clock)) {
+            logger.info("{} - Day start.", clock);
             lastEventDescription = Events.INICIO_DEL_DIA;
             dayFirstEvent = dayFirstEvent.plus(1, ChronoUnit.DAYS);
             clientOfEvent = null;
@@ -104,11 +121,25 @@ public class Simulation {
     private void handleEventFromClientGenerator(LocalDateTime clock) {
 
         if (clientGenerator.isEventFrom(clock)) {
-            Client newClient = clientGenerator.getNextClient(Boolean.TRUE);
 
+            boolean generateNewClient = Boolean.TRUE;
+            if (stopIsNeededFor40MinutesBreak()) {
+                is40MinutesBreak = true;
+                last40MinuteStop = clock;
+                generateNewClient = false;
+            }
+            Client newClient = clientGenerator.getNextClient(generateNewClient);
             newClient.setInTime(clock);
+
+            logger.info("{} - New client into the system. Client: {}.", clock, newClient);
+            if (!generateNewClient) {
+                logger.warn("The 40 minutes break is active. No clients for the proximate time. Actual queue: {}.", magicCarpetQueue.size());
+            }
+
+
             if (magicCarpet.isFree()) {
                 newClient.setServeTime(clock);
+                magicCarpet.serveToClient(clock, newClient);
             } else {
                 magicCarpetQueue.add(newClient);
             }
@@ -122,8 +153,21 @@ public class Simulation {
             Event event = magicCarpet.getEvent();
             if (event.hasClient()) {
                 Client finishedClient = event.getClient();
+                finishedClient.setOutTime(clock);
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
                 clientOfEvent = finishedClient;
+            } else {
+                logger.info("{} - Magic Carpet finished. Just cleaning. ", clock);
+            }
+
+            if (!magicCarpetQueue.isEmpty() && magicCarpet.isFree()) {
+                Client firstClient = magicCarpetQueue.poll();
+                firstClient.setServeTime(clock);
+                magicCarpet.serveToClient(clock, firstClient);
+            } else if (is40MinutesBreak) {
+                logger.warn("The 40 minutes break finished. No clients in the queue. New clients will arrive.");
+                is40MinutesBreak = false;
+                clientGenerator.forceNewNextEventFromClock(clock);
             }
         }
     }
@@ -143,7 +187,15 @@ public class Simulation {
     }
 
     private boolean stopIsNeededFor40MinutesBreak() {
-        return ChronoUnit.MINUTES.between(clock, last40MinuteStop) >= 40;
+        return ChronoUnit.MINUTES.between(last40MinuteStop, clock) >= 40;
+    }
+
+    public Server getMagicCarpet() {
+        return magicCarpet;
+    }
+
+    public Queue<Client> getMagicCarpetQueue() {
+        return magicCarpetQueue;
     }
 
     public LocalDateTime getClock() {

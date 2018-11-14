@@ -4,10 +4,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Strings;
 import utn.frc.sim.simulation.SimulationFinishedException;
 import utn.frc.sim.simulation.SimulationWrapper;
 import utn.frc.sim.util.Fila;
@@ -16,9 +19,7 @@ import utn.frc.sim.view.components.RowOfSimulation;
 public class SimulationController {
 
     private static final Logger logger = LogManager.getLogger(SimulationController.class);
-    private static final int MAX_SIMULATION = 30;
     private SimulationWrapper simulation;
-    private ObservableList<Fila> data;
 
     @FXML
     private TableView<RowOfSimulation> tableView;
@@ -33,6 +34,9 @@ public class SimulationController {
     private TableColumn<RowOfSimulation, String> colClientOfEvent;
 
     @FXML
+    private TableColumn<RowOfSimulation, String> colNextClient;
+
+    @FXML
     private TableColumn<RowOfSimulation, String> colCarpetState;
 
     @FXML
@@ -45,12 +49,15 @@ public class SimulationController {
     private TableColumn<RowOfSimulation, String> colCarpetQueue;
 
     @FXML
-    private TableColumn<RowOfSimulation, String> colNextClient;
-
+    private Label lblMaxDurationInQueue;
 
     @FXML
-    public void initialize(){
+    private Label lblMaxAmountInQueue;
+
+    @FXML
+    public void initialize() {
         initializeColumns();
+        startNewSimulation();
     }
 
     private void initializeColumns() {
@@ -66,21 +73,84 @@ public class SimulationController {
 
 
     @FXML
-    void runClick(ActionEvent event) {
-        runSimulation();
+    private Button btnRun;
+
+    @FXML
+    private Button btnStep;
+
+    @FXML
+    void resetClick(ActionEvent event) {
+        enableRunButtons();
+        resetStatistics();
+        startNewSimulation();
     }
 
-    private void runSimulation() {
-        tableView.getItems().clear();
-        SimulationWrapper simulationWrapper = SimulationWrapper.ofType();
+    @FXML
+    void runClick(ActionEvent event) {
+        runSimulationToEnd();
+    }
 
-        while(true){
+    @FXML
+    void stepClick(ActionEvent event) {
+        runSimulationOneStep();
+    }
+
+    private void runSimulationOneStep() {
+        try {
+            runOneStepOfSimulationAndAddToTable();
+        } catch (SimulationFinishedException e) {
+            finishSimulation();
+        }
+    }
+
+    private void startNewSimulation() {
+        logger.info("Starting new simulation.");
+        tableView.getItems().clear();
+        simulation = SimulationWrapper.ofType();
+    }
+
+    private void runSimulationToEnd() {
+        while (true) {
             try {
-                simulationWrapper.step();
+                runOneStepOfSimulationAndAddToTable();
             } catch (SimulationFinishedException e) {
+                finishSimulation();
                 break;
             }
-            tableView.getItems().add(new RowOfSimulation(simulationWrapper));
         }
+    }
+
+    private void runOneStepOfSimulationAndAddToTable() throws SimulationFinishedException {
+        simulation.step();
+        tableView.getItems().add(new RowOfSimulation(simulation));
+    }
+
+    private void finishSimulation() {
+        logger.info("Simulation ended.");
+        setStatistics();
+        disableRunButtons();
+    }
+
+    private void disableRunButtons() {
+        btnRun.setDisable(Boolean.TRUE);
+        btnStep.setDisable(Boolean.TRUE);
+    }
+
+    private void resetStatistics() {
+        setStatistics(Strings.EMPTY, Strings.EMPTY);
+    }
+
+    private void setStatistics() {
+        setStatistics(simulation.getMaxDurationInQueue(), simulation.getMaxAmountInQueue());
+    }
+
+    private void setStatistics(String maxDurationInQueue, String maxAmountInQueue) {
+        lblMaxDurationInQueue.setText(maxDurationInQueue);
+        lblMaxAmountInQueue.setText(maxAmountInQueue);
+    }
+
+    private void enableRunButtons() {
+        btnRun.setDisable(Boolean.FALSE);
+        btnStep.setDisable(Boolean.FALSE);
     }
 }

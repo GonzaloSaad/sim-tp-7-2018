@@ -3,7 +3,6 @@ package utn.frc.sim.simulation;
 import utn.frc.sim.util.DoubleUtils;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public class SimulationWrapper {
 
@@ -52,10 +51,6 @@ public class SimulationWrapper {
                 .orElse(NONE_SYMBOL);
 
     }
-   // public  String getNumberCliente(){
-    //    return Integer.toString(simulation.;
-   // }
-
 
     /*
     Datos para recepcion.
@@ -80,6 +75,19 @@ public class SimulationWrapper {
         return Integer.toString(simulation.getMagicCarpetQueue().size());
     }
 
+    /*
+    Estadisticas
+     */
+
+    public String getMaxAmountInQueue(){
+        return Integer.toString(simulation.getMaxAmountInQueue());
+    }
+
+    public String getMaxDurationInQueue(){
+        return String.format("[%s] %s sec.",
+                simulation.getClientOfMaxDuration().map(cli-> Integer.toString(cli.getClientNumber())).orElse(NONE_SYMBOL),
+                DoubleUtils.getDoubleWithFourPlaces(simulation.getMaxDurationInQueue()));
+    }
 
     /*
     Range of simulations.

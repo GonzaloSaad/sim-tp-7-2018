@@ -17,7 +17,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("/views/simulations/simulation.fxml"));
         primaryStage.setTitle("Hello CIDS");
-        primaryStage.setScene(new Scene(root, 1300, 700));
+        primaryStage.setScene(new Scene(root));
         primaryStage.setOnCloseRequest(e -> forceClose());
         primaryStage.show();
 

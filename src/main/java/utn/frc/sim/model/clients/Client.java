@@ -42,18 +42,18 @@ public class Client {
         this.outTime = outTime;
     }
 
-    public long getMinutesOfAttention() {
+    public long getSecondsOfAttention() {
         if (inTime == null || outTime == null) {
             throw new IllegalStateException();
         }
-        return ChronoUnit.MILLIS.between(inTime, outTime);
+        return ChronoUnit.SECONDS.between(inTime, outTime);
     }
 
-    public long getMinutesOfWaiting() {
+    public long getSecondsOfWaiting() {
         if (inTime == null || serveTime == null) {
             throw new IllegalStateException();
         }
-        return ChronoUnit.MILLIS.between(inTime, serveTime);
+        return ChronoUnit.SECONDS.between(inTime, serveTime);
     }
 
     @Override

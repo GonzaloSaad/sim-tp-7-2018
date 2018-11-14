@@ -1,6 +1,5 @@
 package utn.frc.sim.simulation;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import utn.frc.sim.generators.distributions.*;
@@ -12,7 +11,6 @@ import utn.frc.sim.model.clients.ClientGenerator;
 import utn.frc.sim.model.servers.Server;
 import utn.frc.sim.model.servers.ServerWithInterruptions;
 
-import java.sql.Time;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -31,8 +29,9 @@ public class Simulation {
     private Events lastEventDescription;
     private Client clientOfEvent;
     private List<EventGenerator> eventGenerators;
-    private int limitOfSimulations;
-
+    private double maxDurationInQueue;
+    private Client clientOfMaxDuration;
+    private int maxAmountInQueue;
 
     private Simulation() {
         initSimulation();
@@ -50,7 +49,13 @@ public class Simulation {
         initMagicCarpet();
         initMagicCarpetQueue();
         initGlobalParameters();
+        initStatistics();
 
+    }
+
+    private void initStatistics() {
+        maxAmountInQueue = 0;
+        maxDurationInQueue = 0;
     }
 
     private void initMagicCarpetQueue() {
@@ -103,8 +108,7 @@ public class Simulation {
         if (clock.getHour() >= 19) {
             throw new SimulationFinishedException();
         }
-
-
+        calculateMaxAmountOfQueue();
         if (dayFirstEvent.isEqual(clock)) {
             logger.info("{} - Day start.", clock);
             lastEventDescription = Events.INICIO_DEL_DIA;
@@ -152,6 +156,7 @@ public class Simulation {
             if (event.hasClient()) {
                 Client finishedClient = event.getClient();
                 finishedClient.setOutTime(clock);
+                calculateMaxDurationInQueue(finishedClient);
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
                 lastEventDescription = Events.FIN_CARPETA;
                 clientOfEvent = finishedClient;
@@ -191,6 +196,19 @@ public class Simulation {
         return ChronoUnit.MINUTES.between(last40MinuteStop, clock) >= 40;
     }
 
+    private void calculateMaxAmountOfQueue() {
+        if(magicCarpetQueue.size() > maxAmountInQueue){
+            maxAmountInQueue = magicCarpetQueue.size();
+        }
+    }
+
+    private void calculateMaxDurationInQueue(Client client){
+        if (client.getSecondsOfWaiting() > maxDurationInQueue){
+            maxDurationInQueue = client.getSecondsOfWaiting();
+            clientOfMaxDuration = client;
+        }
+    }
+
     public Server getMagicCarpet() {
         return magicCarpet;
     }
@@ -213,5 +231,17 @@ public class Simulation {
 
     public Optional<Client> getClientOfEvent() {
         return Optional.ofNullable(clientOfEvent);
+    }
+
+    public Optional<Client> getClientOfMaxDuration() {
+        return Optional.ofNullable(clientOfMaxDuration);
+    }
+
+    public double getMaxDurationInQueue() {
+        return maxDurationInQueue;
+    }
+
+    public int getMaxAmountInQueue() {
+        return maxAmountInQueue;
     }
 }

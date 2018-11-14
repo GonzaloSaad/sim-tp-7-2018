@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="479.0" prefWidth="716.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="utn.frc.sim.view.SimulationController">
+   <children>
+      <TableView fx:id="tableView" layoutX="14.0" layoutY="83.0" prefHeight="351.0" prefWidth="639.0">
+         <columns>
+            <TableColumn fx:id="colClock" prefWidth="75.0" text="Reloj" />
+            <TableColumn fx:id="colEvent" prefWidth="75.0" text="Evento" />
+            <TableColumn fx:id="colClientOfEvent" prefWidth="75.0" text="Cliente" />
+            <TableColumn fx:id="colCarpetState" prefWidth="75.0" text="Estado Alfombra" />
+            <TableColumn fx:id="colCarpetClient" prefWidth="75.0" text="Cliente" />
+            <TableColumn fx:id="colCarpetNextEnd" prefWidth="75.0" text="Proximo Fin" />
+            <TableColumn fx:id="colCarpetQueue" prefWidth="75.0" text="Cola" />
+            <TableColumn fx:id="colNextClient" prefWidth="75.0" text="Proximo Cliente" />
+         </columns>
+      </TableView>
+      <Button layoutX="484.0" layoutY="440.0" mnemonicParsing="false" onAction="#runClick" prefHeight="25.0" prefWidth="52.0" text="Run" />
+   </children>
+</AnchorPane>

@@ -26,9 +26,7 @@ public class Simulation {
     private LocalDateTime clock;
     private LocalDateTime dayFirstEvent;
     private LocalDateTime last40MinuteStop;
-    private LocalDateTime lastCleaning;
     private boolean is40MinutesBreak;
-    private boolean is4HourBreak;
     private ClientGenerator clientGenerator;
     private Events lastEventDescription;
     private Client clientOfEvent;
@@ -60,7 +58,6 @@ public class Simulation {
     }
 
     private void initGlobalParameters() {
-        is4HourBreak = false;
         is40MinutesBreak = false;
 
     }
@@ -121,7 +118,6 @@ public class Simulation {
     private void handleEventFromClientGenerator(LocalDateTime clock) {
 
         if (clientGenerator.isEventFrom(clock)) {
-
             boolean generateNewClient = Boolean.TRUE;
             if (stopIsNeededFor40MinutesBreak()) {
                 is40MinutesBreak = true;
@@ -143,6 +139,8 @@ public class Simulation {
             } else {
                 magicCarpetQueue.add(newClient);
             }
+            lastEventDescription = Events.LLEGADA_CLIENTE;
+            clientOfEvent = newClient;
         } else {
             handleEventFromMagicCarpet(clock);
         }
@@ -155,8 +153,11 @@ public class Simulation {
                 Client finishedClient = event.getClient();
                 finishedClient.setOutTime(clock);
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
+                lastEventDescription = Events.FIN_CARPETA;
                 clientOfEvent = finishedClient;
             } else {
+                lastEventDescription = Events.FIN_CARPETA_LIMPIEZA;
+                clientOfEvent = null;
                 logger.info("{} - Magic Carpet finished. Just cleaning. ", clock);
             }
 

@@ -36,7 +36,7 @@ public class SimulationWrapper {
         return simulation.getClock().toString();
     }
 
-    public String getNumberClient(){
+    public String getClientOfEventNumber(){
         return simulation.getClientOfEvent()
                 .map(client -> Integer.toString(client.getClientNumber()))
                 .orElse(NONE_SYMBOL);
@@ -61,22 +61,22 @@ public class SimulationWrapper {
     Datos para recepcion.
      */
 
-    public String getRecepcionState() {
+    public String getMagicCarpetState() {
         return simulation.getMagicCarpet().getState().toString();
     }
 
-    public String getRecepcionClient() {
+    public String getMagicCarpetClient() {
         return simulation.getMagicCarpet()
                 .getServingClient()
                 .map(client -> Integer.toString(client.getClientNumber()))
                 .orElse(NONE_SYMBOL);
     }
 
-    public String getRecepcionNextEvent() {
+    public String getMagicCarpetNextEvent() {
         return simulation.getMagicCarpet().getNextEvent().map(LocalDateTime::toString).orElse(NONE_SYMBOL);
     }
 
-    public String getRecepcionQueueLenght() {
+    public String getMagicCarpetQueueSize() {
         return Integer.toString(simulation.getMagicCarpetQueue().size());
     }
 

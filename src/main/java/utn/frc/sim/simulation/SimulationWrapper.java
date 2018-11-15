@@ -1,8 +1,10 @@
 package utn.frc.sim.simulation;
 
+import utn.frc.sim.model.clients.Client;
 import utn.frc.sim.util.DoubleUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class SimulationWrapper {
 
@@ -103,6 +105,13 @@ public class SimulationWrapper {
     private boolean isInHourRange(Integer fromHour, Integer toHour){
         toHour--;
         return simulation.getClock().getHour() >= fromHour && simulation.getClock().getHour() <= toHour;
+    }
+
+    /*
+    Clientes
+     */
+    public List<Client> getClients(){
+        return simulation.getClients();
     }
 
 }

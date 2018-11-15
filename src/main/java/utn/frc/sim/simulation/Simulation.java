@@ -8,6 +8,7 @@ import utn.frc.sim.model.EventGenerator;
 import utn.frc.sim.model.TimeEvent;
 import utn.frc.sim.model.clients.Client;
 import utn.frc.sim.model.clients.ClientGenerator;
+import utn.frc.sim.model.clients.ClientState;
 import utn.frc.sim.model.servers.Server;
 import utn.frc.sim.model.servers.ServerWithInterruptions;
 
@@ -32,6 +33,7 @@ public class Simulation {
     private double maxDurationInQueue;
     private Client clientOfMaxDuration;
     private int maxAmountInQueue;
+    private List<Client> clients;
 
     private Simulation() {
         initSimulation();
@@ -50,7 +52,11 @@ public class Simulation {
         initMagicCarpetQueue();
         initGlobalParameters();
         initStatistics();
+        startClientList();
+    }
 
+    private void startClientList() {
+        clients = new ArrayList<>();
     }
 
     private void initStatistics() {
@@ -131,6 +137,9 @@ public class Simulation {
             Client newClient = clientGenerator.getNextClient(generateNewClient);
             newClient.setInTime(clock);
 
+
+            clients.add(newClient);
+
             logger.info("{} - New client into the system. Client: {}.", clock, newClient);
             if (!generateNewClient) {
                 logger.warn("The 40 minutes break is active. No clients for the proximate time. Actual queue: {}.", magicCarpetQueue.size());
@@ -139,8 +148,10 @@ public class Simulation {
 
             if (magicCarpet.isFree()) {
                 newClient.setServeTime(clock);
+                newClient.setState(ClientState.EN_CARPETA);
                 magicCarpet.serveToClient(clock, newClient);
             } else {
+                newClient.setState(ClientState.COLA_CARPETA);
                 magicCarpetQueue.add(newClient);
             }
             lastEventDescription = Events.LLEGADA_CLIENTE;
@@ -156,6 +167,7 @@ public class Simulation {
             if (event.hasClient()) {
                 Client finishedClient = event.getClient();
                 finishedClient.setOutTime(clock);
+                finishedClient.setState(ClientState.TERMINADO);
                 calculateMaxDurationInQueue(finishedClient);
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
                 lastEventDescription = Events.FIN_CARPETA;
@@ -169,6 +181,7 @@ public class Simulation {
             if (!magicCarpetQueue.isEmpty() && magicCarpet.isFree()) {
                 Client firstClient = magicCarpetQueue.poll();
                 firstClient.setServeTime(clock);
+                firstClient.setState(ClientState.EN_CARPETA);
                 magicCarpet.serveToClient(clock, firstClient);
             } else if (is40MinutesBreak) {
                 logger.warn("The 40 minutes break finished. No clients in the queue. New clients will arrive.");
@@ -243,5 +256,9 @@ public class Simulation {
 
     public int getMaxAmountInQueue() {
         return maxAmountInQueue;
+    }
+
+    public List<Client> getClients() {
+        return clients;
     }
 }

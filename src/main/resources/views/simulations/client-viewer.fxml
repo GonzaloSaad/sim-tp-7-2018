@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="$CONTROLLER_NAME$"
-            prefHeight="400.0" prefWidth="600.0">
-
+<AnchorPane prefHeight="267.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="utn.frc.sim.view.ClientViewerController">
+   <children>
+      <TableView fx:id="tableView" layoutX="14.0" layoutY="47.0" prefHeight="196.0" prefWidth="559.0">
+        <columns>
+          <TableColumn fx:id="colClient" editable="false" prefWidth="75.0" sortable="false" text="Client" />
+          <TableColumn fx:id="colState" editable="false" prefWidth="75.0" sortable="false" text="Estado" />
+            <TableColumn fx:id="colInTime" editable="false" prefWidth="139.0" sortable="false" text="In time" />
+            <TableColumn fx:id="colServeTime" editable="false" prefWidth="142.0" sortable="false" text="Serve time" />
+            <TableColumn fx:id="colOutTime" editable="false" prefWidth="126.0" sortable="false" text="Out time" />
+        </columns>
+      </TableView>
+   </children>
 </AnchorPane>

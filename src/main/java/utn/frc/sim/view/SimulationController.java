@@ -4,10 +4,12 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.util.Strings;
@@ -16,10 +18,16 @@ import utn.frc.sim.simulation.SimulationWrapper;
 import utn.frc.sim.util.Fila;
 import utn.frc.sim.view.components.RowOfSimulation;
 
+import java.io.IOException;
+import java.util.Optional;
+
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class SimulationController {
 
     private static final Logger logger = LogManager.getLogger(SimulationController.class);
     private SimulationWrapper simulation;
+    private Optional<ClientViewerController> controller;
+    private Stage dialog;
 
     @FXML
     private TableView<RowOfSimulation> tableView;
@@ -55,9 +63,23 @@ public class SimulationController {
     private Label lblMaxAmountInQueue;
 
     @FXML
+    private Hyperlink linkShowClients;
+
+    @FXML
+    private Button btnRun;
+
+    @FXML
+    private Button btnStep;
+
+    @FXML
     public void initialize() {
         initializeColumns();
+        initializeController();
         startNewSimulation();
+    }
+
+    private void initializeController() {
+        controller = Optional.empty();
     }
 
     private void initializeColumns() {
@@ -71,12 +93,18 @@ public class SimulationController {
         colCarpetQueue.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getMagicCarpetQueue()));
     }
 
-
     @FXML
-    private Button btnRun;
+    void linkShowClientsClick(ActionEvent event) {
+        showClients();
+    }
 
-    @FXML
-    private Button btnStep;
+    private void showClients() {
+        if (!controller.isPresent()) {
+            controller = loadListView();
+            controller.ifPresent(c -> c.addClientsToTable(simulation.getClients()));
+        }
+        dialog.requestFocus();
+    }
 
     @FXML
     void resetClick(ActionEvent event) {
@@ -98,6 +126,7 @@ public class SimulationController {
     private void runSimulationOneStep() {
         try {
             runOneStepOfSimulationAndAddToTable();
+            controller.ifPresent(c -> c.addClientsToTable(simulation.getClients()));
         } catch (SimulationFinishedException e) {
             finishSimulation();
         }
@@ -115,6 +144,7 @@ public class SimulationController {
                 runOneStepOfSimulationAndAddToTable();
             } catch (SimulationFinishedException e) {
                 finishSimulation();
+                controller.ifPresent(c -> c.addClientsToTable(simulation.getClients()));
                 break;
             }
         }
@@ -152,5 +182,27 @@ public class SimulationController {
     private void enableRunButtons() {
         btnRun.setDisable(Boolean.FALSE);
         btnStep.setDisable(Boolean.FALSE);
+        linkShowClients.setVisited(Boolean.FALSE);
+    }
+
+    private Optional<ClientViewerController> loadListView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/views/simulations/client-viewer.fxml"));
+            openNewDialog(loader.load());
+            return Optional.ofNullable(loader.getController());
+
+        } catch (IOException e) {
+            logger.error("Problem opening table view.", e);
+            return Optional.empty();
+        }
+    }
+
+    private void openNewDialog(Parent parent) {
+        dialog = new Stage();
+        Scene scene = new Scene(parent);
+        dialog.setScene(scene);
+        dialog.setResizable(Boolean.FALSE);
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.show();
     }
 }

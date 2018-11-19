@@ -1,4 +1,4 @@
-# SIMULACION 2018 - TP5
+# SIMULACION 2018 - TP7
 
 
 
@@ -29,7 +29,7 @@ mvn clean install
 ### Ejecutar el programa
 
 En la carpeta `./target` existe un jar 
-ejecutable llamado `sim-tp3-2018-1.0.jar`. Hacer doble click sobre el archivo.
+ejecutable llamado `sim-tp7-2018-1.0.jar`. Hacer doble click sobre el archivo.
 
 
 

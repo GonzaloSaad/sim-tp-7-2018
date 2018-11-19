@@ -4,8 +4,11 @@ public enum Events {
     INICIO("Inicio."),
     INICIO_DEL_DIA("Inicio del dia."),
     LLEGADA_CLIENTE("Llegada de cliente."),
-    FIN_CARPETA("Fin de carpeta."),
-    FIN_CARPETA_LIMPIEZA("Fin de limpieza.");
+    INICIO_BREAK("Se requiere break."),
+    FIN_BREAK("Fin de break."),
+    INICIO_LIMPIEZA("Se requiere limpieza."),
+    FIN_LIMPIEZA("Fin de limpieza."),
+    FIN_CARPETA("Fin de carpeta.");
 
     private final String text;
 

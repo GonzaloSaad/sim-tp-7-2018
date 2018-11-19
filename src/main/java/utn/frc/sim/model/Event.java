@@ -1,23 +1,22 @@
 package utn.frc.sim.model;
 
-import utn.frc.sim.model.clients.Client;
 
-public class Event {
-    private final Client client;
+public class Event<T> {
+    private final T component;
 
-    public Event(Client client) {
-        this.client = client;
+    public Event(T client) {
+        this.component = client;
     }
 
     public Event(){
         this(null);
     }
 
-    public Client getClient() {
-        return client;
+    public T getComponent() {
+        return component;
     }
 
-    public boolean hasClient(){
-        return client != null;
+    public boolean hasComponent(){
+        return component != null;
     }
 }

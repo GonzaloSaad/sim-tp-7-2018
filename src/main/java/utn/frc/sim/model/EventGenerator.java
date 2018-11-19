@@ -5,5 +5,5 @@ import java.util.Optional;
 
 public interface EventGenerator {
     boolean isEventFrom(LocalDateTime clock);
-    Optional<LocalDateTime> getNextEvent();
+    Optional<LocalDateTime> getNextInterruption();
 }

@@ -9,8 +9,9 @@ import utn.frc.sim.model.TimeEvent;
 import utn.frc.sim.model.clients.Client;
 import utn.frc.sim.model.clients.ClientGenerator;
 import utn.frc.sim.model.clients.ClientState;
+import utn.frc.sim.model.interruptions.Interruption;
+import utn.frc.sim.model.interruptions.InterruptionState;
 import utn.frc.sim.model.servers.Server;
-import utn.frc.sim.model.servers.ServerWithInterruptions;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -20,13 +21,21 @@ public class Simulation {
 
     private static final Logger logger = LogManager.getLogger(Simulation.class);
 
-    private Server magicCarpet;
-    private Queue<Client> magicCarpetQueue;
+
     private LocalDateTime clock;
     private LocalDateTime dayFirstEvent;
-    private LocalDateTime last40MinuteStop;
-    private boolean is40MinutesBreak;
+
     private ClientGenerator clientGenerator;
+
+    private Server magicCarpet;
+    private Queue<Client> magicCarpetQueue;
+
+    private Interruption interruptionOf40Minutes;
+    private Interruption interruptionOf4Hours;
+
+    private boolean is40MinutesBreakPending;
+    private boolean is4HourBreakPending;
+
     private Events lastEventDescription;
     private Client clientOfEvent;
     private List<EventGenerator> eventGenerators;
@@ -44,37 +53,59 @@ public class Simulation {
     }
 
     private void initSimulation() {
+        initGlobalParameters();
         initListOfEventGenerators();
         initFirstEventOfDay();
+        initEventDescription();
         initClientGenerator();
-        initEvent();
         initMagicCarpet();
         initMagicCarpetQueue();
-        initGlobalParameters();
+        initInterruptionOf40Minutes();
+        initInterruptionOf4Hours();
         initStatistics();
         startClientList();
     }
 
-    private void startClientList() {
-        clients = new ArrayList<>();
+    private void initInterruptionOf40Minutes() {
+        DistributionRandomGenerator generator40Minutes = ConstantDistributionGenerator.createOf(40);
+        TimeEvent timeEventOf40Minutes = TimeEvent.create(generator40Minutes, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
+
+        DistributionRandomGenerator generatorOfDuration = ConstantDistributionGenerator.createOf(8);
+        TimeEvent timeEventOfDuration = TimeEvent.create(generatorOfDuration, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
+
+        interruptionOf40Minutes = new Interruption(dayFirstEvent, timeEventOf40Minutes, timeEventOfDuration);
+        eventGenerators.add(interruptionOf40Minutes);
     }
 
-    private void initStatistics() {
-        maxAmountInQueue = 0;
-        maxDurationInQueue = 0;
-    }
+    private void initInterruptionOf4Hours() {
+        DistributionRandomGenerator generator40Minutes = ConstantDistributionGenerator.createOf(4 * 60);
+        TimeEvent timeEventOf4Hours = TimeEvent.create(generator40Minutes, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
 
-    private void initMagicCarpetQueue() {
-        magicCarpetQueue = new LinkedList<>();
+        DistributionRandomGenerator generatorOfDuration = ConstantDistributionGenerator.createOf(20);
+        TimeEvent timeEventOfDuration = TimeEvent.create(generatorOfDuration, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
+
+        interruptionOf4Hours = new Interruption(dayFirstEvent, timeEventOf4Hours, timeEventOfDuration);
+        eventGenerators.add(interruptionOf4Hours);
     }
 
     private void initGlobalParameters() {
-        is40MinutesBreak = false;
-
+        is40MinutesBreakPending = false;
+        is4HourBreakPending = false;
     }
 
-    private void initListOfEventGenerators() {
-        eventGenerators = new ArrayList<>();
+    private void initFirstEventOfDay() {
+        dayFirstEvent = LocalDateTime.of(2018, 1, 1, 9, 0);
+    }
+
+    private void initEventDescription() {
+        lastEventDescription = Events.INICIO;
+    }
+
+    private void initClientGenerator() {
+        DistributionRandomGenerator generator = UniformDistributionGenerator.createOf(135, 225);
+        TimeEvent timeEvent = TimeEvent.create(generator, ChronoUnit.SECONDS, ChronoUnit.MILLIS);
+        clientGenerator = new ClientGenerator(dayFirstEvent, timeEvent);
+        eventGenerators.add(clientGenerator);
     }
 
     private void initMagicCarpet() {
@@ -84,24 +115,25 @@ public class Simulation {
         DistributionRandomGenerator generatorOfInterruption = ConstantDistributionGenerator.createOf(20);
         TimeEvent timeEventOfInterruptions = TimeEvent.create(generatorOfInterruption, ChronoUnit.MINUTES, ChronoUnit.SECONDS);
 
-        magicCarpet = new ServerWithInterruptions("Magic Carpet", timeEvent, 4, dayFirstEvent, timeEventOfInterruptions);
+        magicCarpet = new Server("Magic Carpet", timeEvent);
         eventGenerators.add(magicCarpet);
     }
 
-    private void initEvent() {
-        lastEventDescription = Events.INICIO;
+    private void initMagicCarpetQueue() {
+        magicCarpetQueue = new LinkedList<>();
     }
 
-    private void initFirstEventOfDay() {
-        dayFirstEvent = LocalDateTime.of(2018, 1, 1, 9, 0);
-        last40MinuteStop = dayFirstEvent;
+    private void initStatistics() {
+        maxAmountInQueue = 0;
+        maxDurationInQueue = 0;
     }
 
-    private void initClientGenerator() {
-        DistributionRandomGenerator generator = UniformDistributionGenerator.createOf(135, 225);
-        TimeEvent timeEvent = TimeEvent.create(generator, ChronoUnit.SECONDS, ChronoUnit.MILLIS);
-        clientGenerator = new ClientGenerator(dayFirstEvent, timeEvent);
-        eventGenerators.add(clientGenerator);
+    private void initListOfEventGenerators() {
+        eventGenerators = new ArrayList<>();
+    }
+
+    private void startClientList() {
+        clients = new ArrayList<>();
     }
 
     public void step() throws SimulationFinishedException {
@@ -121,6 +153,84 @@ public class Simulation {
             dayFirstEvent = dayFirstEvent.plus(1, ChronoUnit.DAYS);
             clientOfEvent = null;
         } else {
+            handleEventFrom40MinutesInterruption(clock);
+        }
+    }
+
+    private void handleEventFrom40MinutesInterruption(LocalDateTime clock) {
+        if (interruptionOf40Minutes.isEventFrom(clock)) {
+            InterruptionState state = interruptionOf40Minutes.getEvent().getComponent();
+            if (state == InterruptionState.ACTIVE) {
+
+                logger.info("{} - Break is needed.", clock);
+                lastEventDescription = Events.INICIO_BREAK;
+                clientOfEvent = null;
+                interruptionOf40Minutes.calculateNextInterruption(clock);
+
+                if (magicCarpet.isFree()) {
+                    logger.info("Break has started. Magic carpet was free.");
+                    magicCarpet.smallBreak();
+                    is40MinutesBreakPending = false;
+                    interruptionOf40Minutes.calculateNextEnd(clock);
+
+                } else {
+                    logger.info("Break is pending. Magic carpet was not free.");
+                    is4HourBreakPending = true;
+                }
+            } else {
+
+                logger.info("{} - Break has finished.", clock);
+                interruptionOf40Minutes.stopInterruptions();
+                lastEventDescription = Events.FIN_BREAK;
+                clientOfEvent = null;
+                magicCarpet.free();
+
+                if(is4HourBreakPending){
+                    performPendingCleaning(clock);
+                } else {
+                    getClientFromQueueAndAssignToCarpet(clock);
+                }
+
+            }
+        } else {
+            handleEventFrom4HoursInterruption(clock);
+        }
+    }
+
+    private void handleEventFrom4HoursInterruption(LocalDateTime clock) {
+        if (interruptionOf4Hours.isEventFrom(clock)) {
+            InterruptionState state = interruptionOf4Hours.getEvent().getComponent();
+            if (state == InterruptionState.ACTIVE) {
+
+                logger.info("{} - Cleaning is needed.", clock);
+                lastEventDescription = Events.INICIO_LIMPIEZA;
+                clientOfEvent = null;
+                interruptionOf4Hours.calculateNextInterruption(clock);
+
+                if (magicCarpet.isFree()) {
+                    logger.info("Cleaning has started. Magic carpet was free.");
+                    magicCarpet.smallBreak();
+                    is40MinutesBreakPending = false;
+                    interruptionOf4Hours.calculateNextEnd(clock);
+                } else {
+                    logger.info("Cleaning is pending. Magic carpet was not free.");
+                    is4HourBreakPending = true;
+                }
+            } else {
+
+                logger.info("{} - Cleaning has finished.");
+                interruptionOf4Hours.stopInterruptions();
+                lastEventDescription = Events.FIN_LIMPIEZA;
+                clientOfEvent = null;
+                magicCarpet.free();
+
+                if(is40MinutesBreakPending){
+                    performPendingBreak(clock);
+                } else {
+                    getClientFromQueueAndAssignToCarpet(clock);
+                }
+            }
+        } else {
             handleEventFromClientGenerator(clock);
         }
     }
@@ -128,23 +238,12 @@ public class Simulation {
     private void handleEventFromClientGenerator(LocalDateTime clock) {
 
         if (clientGenerator.isEventFrom(clock)) {
-            boolean generateNewClient = Boolean.TRUE;
-            if (stopIsNeededFor40MinutesBreak()) {
-                is40MinutesBreak = true;
-                last40MinuteStop = clock;
-                generateNewClient = false;
-            }
-            Client newClient = clientGenerator.getNextClient(generateNewClient);
+            Client newClient = clientGenerator.getNextClient();
             newClient.setInTime(clock);
-
 
             clients.add(newClient);
 
             logger.info("{} - New client into the system. Client: {}.", clock, newClient);
-            if (!generateNewClient) {
-                logger.warn("The 40 minutes break is active. No clients for the proximate time. Actual queue: {}.", magicCarpetQueue.size());
-            }
-
 
             if (magicCarpet.isFree()) {
                 newClient.setServeTime(clock);
@@ -163,31 +262,47 @@ public class Simulation {
 
     private void handleEventFromMagicCarpet(LocalDateTime clock) {
         if (magicCarpet.isEventFrom(clock)) {
-            Event event = magicCarpet.getEvent();
-            if (event.hasClient()) {
-                Client finishedClient = event.getClient();
+            Event<Client> event = magicCarpet.getEvent();
+            if (event.hasComponent()) {
+                Client finishedClient = event.getComponent();
                 finishedClient.setOutTime(clock);
                 finishedClient.setState(ClientState.TERMINADO);
                 calculateMaxDurationInQueue(finishedClient);
                 logger.info("{} - Magic Carpet finished. Client: {}. ", clock, finishedClient);
                 lastEventDescription = Events.FIN_CARPETA;
                 clientOfEvent = finishedClient;
-            } else {
-                lastEventDescription = Events.FIN_CARPETA_LIMPIEZA;
-                clientOfEvent = null;
-                logger.info("{} - Magic Carpet finished. Just cleaning. ", clock);
+
+                if (is40MinutesBreakPending) {
+                    performPendingBreak(clock);
+                } else if (is4HourBreakPending) {
+                    performPendingCleaning(clock);
+                }
             }
 
-            if (!magicCarpetQueue.isEmpty() && magicCarpet.isFree()) {
-                Client firstClient = magicCarpetQueue.poll();
-                firstClient.setServeTime(clock);
-                firstClient.setState(ClientState.EN_CARPETA);
-                magicCarpet.serveToClient(clock, firstClient);
-            } else if (is40MinutesBreak) {
-                logger.warn("The 40 minutes break finished. No clients in the queue. New clients will arrive.");
-                is40MinutesBreak = false;
-                clientGenerator.forceNewNextEventFromClock(clock);
-            }
+            getClientFromQueueAndAssignToCarpet(clock);
+        }
+    }
+
+    private void performPendingBreak(LocalDateTime clock) {
+        logger.info("Starting break that was pending.");
+        magicCarpet.smallBreak();
+        interruptionOf40Minutes.calculateNextEnd(clock);
+        is40MinutesBreakPending = false;
+    }
+
+    private void performPendingCleaning(LocalDateTime clock) {
+        logger.info("Starting cleaning that was pending.");
+        magicCarpet.clean();
+        interruptionOf4Hours.calculateNextEnd(clock);
+        is4HourBreakPending = false;
+    }
+
+    private void getClientFromQueueAndAssignToCarpet(LocalDateTime clock) {
+        if (!magicCarpetQueue.isEmpty() && magicCarpet.isFree()) {
+            Client firstClient = magicCarpetQueue.poll();
+            firstClient.setServeTime(clock);
+            firstClient.setState(ClientState.EN_CARPETA);
+            magicCarpet.serveToClient(clock, firstClient);
         }
     }
 
@@ -196,7 +311,7 @@ public class Simulation {
         final LocalDateTime firstEvent = dayFirstEvent;
 
         Optional<LocalDateTime> possibleFirstEvent = eventGenerators.stream()
-                .map(EventGenerator::getNextEvent)
+                .map(EventGenerator::getNextInterruption)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(localDateTime -> localDateTime.isBefore(firstEvent))
@@ -205,18 +320,14 @@ public class Simulation {
         return possibleFirstEvent.orElse(firstEvent);
     }
 
-    private boolean stopIsNeededFor40MinutesBreak() {
-        return ChronoUnit.MINUTES.between(last40MinuteStop, clock) >= 40;
-    }
-
     private void calculateMaxAmountOfQueue() {
-        if(magicCarpetQueue.size() > maxAmountInQueue){
+        if (magicCarpetQueue.size() > maxAmountInQueue) {
             maxAmountInQueue = magicCarpetQueue.size();
         }
     }
 
-    private void calculateMaxDurationInQueue(Client client){
-        if (client.getSecondsOfWaiting() > maxDurationInQueue){
+    private void calculateMaxDurationInQueue(Client client) {
+        if (client.getSecondsOfWaiting() > maxDurationInQueue) {
             maxDurationInQueue = client.getSecondsOfWaiting();
             clientOfMaxDuration = client;
         }

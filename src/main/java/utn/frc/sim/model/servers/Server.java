@@ -28,8 +28,8 @@ public class Server implements EventGenerator {
         state = ServerState.OCP;
     }
 
-    public Event getEvent() {
-        Event event = new Event(servingClient);
+    public Event<Client> getEvent() {
+        Event<Client> event = new Event<>(servingClient);
         state = ServerState.LBR;
         nextEnd = null;
         servingClient = null;
@@ -74,12 +74,26 @@ public class Server implements EventGenerator {
         this.state = state;
     }
 
+    public void clean(){
+        setState(ServerState.OUT);
+    }
+
+    public void smallBreak(){
+        setState(ServerState.OUT_2);
+    }
+
+    public void free(){
+        setState(ServerState.LBR);
+    }
+
+
+
     public boolean isFree() {
         return state == ServerState.LBR;
     }
 
     @Override
-    public Optional<LocalDateTime> getNextEvent() {
+    public Optional<LocalDateTime> getNextInterruption() {
         return Optional.ofNullable(nextEnd);
     }
 

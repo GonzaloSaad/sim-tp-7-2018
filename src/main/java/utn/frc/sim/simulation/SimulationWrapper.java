@@ -48,7 +48,7 @@ public class SimulationWrapper {
 
     public String getNextClientEvent() {
         return simulation.getClientGenerator()
-                .getNextEvent()
+                .getNextInterruption()
                 .map(LocalDateTime::toString)
                 .orElse(NONE_SYMBOL);
 
@@ -70,7 +70,7 @@ public class SimulationWrapper {
     }
 
     public String getMagicCarpetNextEvent() {
-        return simulation.getMagicCarpet().getNextEvent().map(LocalDateTime::toString).orElse(NONE_SYMBOL);
+        return simulation.getMagicCarpet().getNextInterruption().map(LocalDateTime::toString).orElse(NONE_SYMBOL);
     }
 
     public String getMagicCarpetQueueSize() {

@@ -7,6 +7,8 @@ public class RowOfSimulation {
     private String event;
     private String clientOfEvent;
     private String nextClient;
+    private String nextBreak;
+    private String nextClean;
     private String magicCarpetState;
     private String magicCarpetClient;
     private String magicCarpetNextEnd;
@@ -21,6 +23,8 @@ public class RowOfSimulation {
         event = wrapper.getLastEvent();
         clientOfEvent = wrapper.getClientOfEventNumber();
         nextClient = wrapper.getNextClientEvent();
+        nextBreak = wrapper.getNextBreak();
+        nextClean = wrapper.getNextCleaning();
         magicCarpetState = wrapper.getMagicCarpetState();
         magicCarpetClient = wrapper.getMagicCarpetClient();
         magicCarpetNextEnd = wrapper.getMagicCarpetNextEvent();
@@ -41,6 +45,14 @@ public class RowOfSimulation {
 
     public String getNextClient() {
         return nextClient;
+    }
+
+    public String getNextBreak() {
+        return nextBreak;
+    }
+
+    public String getNextClean() {
+        return nextClean;
     }
 
     public String getMagicCarpetState() {

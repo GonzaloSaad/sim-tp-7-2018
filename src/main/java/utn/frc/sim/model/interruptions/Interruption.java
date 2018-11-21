@@ -47,6 +47,10 @@ public class Interruption implements EventGenerator {
         nextEnd = null;
     }
 
+    public Optional<LocalDateTime> getNextInterruption(){
+        return Optional.ofNullable(nextInterruption);
+    }
+
     @Override
     public boolean isEventFrom(LocalDateTime clock) {
         if (isActive()){
@@ -56,7 +60,7 @@ public class Interruption implements EventGenerator {
     }
 
     @Override
-    public Optional<LocalDateTime> getNextInterruption() {
+    public Optional<LocalDateTime> getNextEvent() {
         if (isActive()){
             return Optional.ofNullable(nextEnd);
         }

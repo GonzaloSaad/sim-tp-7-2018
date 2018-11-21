@@ -4,7 +4,9 @@ import utn.frc.sim.model.clients.Client;
 import utn.frc.sim.util.DoubleUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 public class SimulationWrapper {
 
@@ -34,10 +36,11 @@ public class SimulationWrapper {
     }
 
     public String getClock() {
-        return simulation.getClock().toString();
+        return getFormattedLocalDateTime(simulation.getClock());
     }
 
     public String getClientOfEventNumber(){
+
         return simulation.getClientOfEvent()
                 .map(client -> Integer.toString(client.getClientNumber()))
                 .orElse(NONE_SYMBOL);
@@ -48,14 +51,32 @@ public class SimulationWrapper {
 
     public String getNextClientEvent() {
         return simulation.getClientGenerator()
-                .getNextInterruption()
-                .map(LocalDateTime::toString)
+                .getNextEvent()
+                .map(this::getFormattedLocalDateTime)
                 .orElse(NONE_SYMBOL);
 
     }
 
     /*
-    Datos para recepcion.
+    Datos de interrupciones
+     */
+
+    public String getNextCleaning(){
+        return simulation.getInterruptionOf4Hours()
+                .getNextInterruption()
+                .map(this::getFormattedLocalDateTime)
+                .orElse(NONE_SYMBOL);
+    }
+
+    public String getNextBreak(){
+        return simulation.getInterruptionOf40Minutes()
+                .getNextInterruption()
+                .map(this::getFormattedLocalDateTime)
+                .orElse(NONE_SYMBOL);
+    }
+
+    /*
+    Datos para Carpeta.
      */
 
     public String getMagicCarpetState() {
@@ -70,7 +91,7 @@ public class SimulationWrapper {
     }
 
     public String getMagicCarpetNextEvent() {
-        return simulation.getMagicCarpet().getNextInterruption().map(LocalDateTime::toString).orElse(NONE_SYMBOL);
+        return simulation.getMagicCarpet().getNextEvent().map(this::getFormattedLocalDateTime).orElse(NONE_SYMBOL);
     }
 
     public String getMagicCarpetQueueSize() {
@@ -112,6 +133,10 @@ public class SimulationWrapper {
      */
     public List<Client> getClients(){
         return simulation.getClients();
+    }
+
+    private String getFormattedLocalDateTime(LocalDateTime localDateTime){
+        return DateTimeFormatter.ofPattern("HH:mm:ss SSS").format(localDateTime);
     }
 
 }

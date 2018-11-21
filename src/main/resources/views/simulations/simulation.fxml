@@ -11,14 +11,16 @@
    <children>
       <TableView fx:id="tableView" layoutX="9.0" layoutY="89.0" prefHeight="351.0" prefWidth="951.0">
          <columns>
-            <TableColumn fx:id="colClock" editable="false" prefWidth="146.0" resizable="false" sortable="false" text="Reloj" />
-            <TableColumn fx:id="colEvent" editable="false" prefWidth="124.0" resizable="false" sortable="false" text="Evento" />
-            <TableColumn fx:id="colClientOfEvent" editable="false" minWidth="0.0" prefWidth="87.0" resizable="false" sortable="false" text="Cliente" />
-            <TableColumn fx:id="colNextClient" editable="false" prefWidth="144.0" resizable="false" sortable="false" text="Proximo Cliente" />
-            <TableColumn fx:id="colCarpetState" editable="false" prefWidth="117.0" resizable="false" sortable="false" text="Estado Carpeta" />
-            <TableColumn fx:id="colCarpetClient" editable="false" prefWidth="98.0" resizable="false" sortable="false" text="Cliente" />
-            <TableColumn fx:id="colCarpetNextEnd" editable="false" prefWidth="149.0" resizable="false" sortable="false" text="Proximo Fin" />
-            <TableColumn fx:id="colCarpetQueue" editable="false" prefWidth="85.0" resizable="false" sortable="false" text="Cola" />
+            <TableColumn fx:id="colClock" editable="false" prefWidth="83.0" resizable="false" sortable="false" text="Reloj" />
+            <TableColumn fx:id="colEvent" editable="false" prefWidth="122.0" resizable="false" sortable="false" text="Evento" />
+            <TableColumn fx:id="colClientOfEvent" editable="false" minWidth="0.0" prefWidth="55.0" resizable="false" sortable="false" text="Cliente" />
+            <TableColumn fx:id="colNextClient" editable="false" prefWidth="101.0" resizable="false" sortable="false" text="Proximo Cliente" />
+            <TableColumn fx:id="colNextBreak" editable="false" prefWidth="125.0" resizable="false" sortable="false" text="Prox. Break" />
+            <TableColumn fx:id="colNextClean" editable="false" prefWidth="125.0" resizable="false" sortable="false" text="Prox. Limpieza" />
+            <TableColumn fx:id="colCarpetState" editable="false" prefWidth="123.0" resizable="false" sortable="false" text="Estado Carpeta" />
+            <TableColumn fx:id="colCarpetClient" editable="false" prefWidth="55.0" resizable="false" sortable="false" text="Cliente" />
+            <TableColumn fx:id="colCarpetNextEnd" prefWidth="115.0" text="Proximo Fin" />
+            <TableColumn fx:id="colCarpetQueue" prefWidth="45.0" text="Cola" />
          </columns>
       </TableView>
       <Button fx:id="btnRun" layoutX="908.0" layoutY="450.0" mnemonicParsing="false" onAction="#runClick" prefHeight="25.0" prefWidth="52.0" text="Run" />

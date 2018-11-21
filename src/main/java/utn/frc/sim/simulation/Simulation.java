@@ -311,7 +311,7 @@ public class Simulation {
         final LocalDateTime firstEvent = dayFirstEvent;
 
         Optional<LocalDateTime> possibleFirstEvent = eventGenerators.stream()
-                .map(EventGenerator::getNextInterruption)
+                .map(EventGenerator::getNextEvent)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .filter(localDateTime -> localDateTime.isBefore(firstEvent))
@@ -359,6 +359,14 @@ public class Simulation {
 
     public Optional<Client> getClientOfMaxDuration() {
         return Optional.ofNullable(clientOfMaxDuration);
+    }
+
+    public Interruption getInterruptionOf40Minutes() {
+        return interruptionOf40Minutes;
+    }
+
+    public Interruption getInterruptionOf4Hours() {
+        return interruptionOf4Hours;
     }
 
     public double getMaxDurationInQueue() {

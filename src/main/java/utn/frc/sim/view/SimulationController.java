@@ -45,6 +45,12 @@ public class SimulationController {
     private TableColumn<RowOfSimulation, String> colNextClient;
 
     @FXML
+    private TableColumn<RowOfSimulation, String> colNextBreak;
+
+    @FXML
+    private TableColumn<RowOfSimulation, String> colNextClean;
+
+    @FXML
     private TableColumn<RowOfSimulation, String> colCarpetState;
 
     @FXML
@@ -87,6 +93,8 @@ public class SimulationController {
         colEvent.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getEvent()));
         colClientOfEvent.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getClientOfEvent()));
         colNextClient.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getNextClient()));
+        colNextBreak.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getNextBreak()));
+        colNextClean.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getNextClean()));
         colCarpetState.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getMagicCarpetState()));
         colCarpetClient.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getMagicCarpetClient()));
         colCarpetNextEnd.setCellValueFactory(e -> new SimpleStringProperty(e.getValue().getMagicCarpetNextEnd()));
@@ -203,6 +211,7 @@ public class SimulationController {
         dialog.setScene(scene);
         dialog.setResizable(Boolean.FALSE);
         dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.setOnCloseRequest((e)-> controller = Optional.empty());
         dialog.show();
     }
 }

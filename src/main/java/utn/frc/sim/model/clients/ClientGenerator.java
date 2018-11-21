@@ -38,7 +38,7 @@ public class ClientGenerator implements EventGenerator {
     }
 
     @Override
-    public Optional<LocalDateTime> getNextInterruption() {
+    public Optional<LocalDateTime> getNextEvent() {
         return Optional.ofNullable(nextClientEvent);
     }
 
